@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors")
 const dotenv = require("dotenv")
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 
 dotenv.config();
@@ -37,6 +37,49 @@ async function run() {
         const cursor = await salaryCollectionData.find(query).toArray();
         res.send(cursor);
     })
+
+    app.post("/add-employee", async(req, res) => {
+      const employee = req.body;
+      const cursor = await salaryCollectionData.insertOne(employee);
+      res.send(cursor);
+
+    })
+
+    app.get("/employee/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await salaryCollectionData.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/employee/:id", async(req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id)}
+      const user = req.body;
+      const options = {upsert: true}
+      const updatedUser = {
+        $set:{
+          firstName: user.firstName,
+          lastName: user.lastName,
+          salary: user.salary,
+          date: user.date,
+          email: user.email
+        }
+      }
+      const cursor = await salaryCollectionData.updateOne(
+        filter,
+        updatedUser, options
+      );
+      res.send(cursor)
+    })
+
+    app.delete("/employee-delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id)}
+      const result = await salaryCollectionData.deleteOne(query);
+      res.send(result);
+    })
+    
   }
   finally{
 
